@@ -1,0 +1,20 @@
+# Environment
+.env
+
+# Vector store (regenerated on ingest)
+chroma_db/
+
+# Model caches
+.cache/
+__pycache__/
+*.pyc
+
+# Virtual environments
+.venv/
+venv/
+
+# Streamlit
+.streamlit/
+
+# claude
+.claude/

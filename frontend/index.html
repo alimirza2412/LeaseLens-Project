@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LeaseLens — Lease Abstractor & Risk Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css?v=6" />
+</head>
+<body>
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">◧</span>
+      <span class="brand-name">LeaseLens</span>
+    </div>
+    <div class="status" id="status">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">Connecting…</span>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- ============ HERO / UPLOAD (before analysis) ============ -->
+    <section id="hero" class="hero">
+      <h1 class="hero-title">Abstract <span class="mark">any lease</span><br />with ease</h1>
+      <p class="hero-sub">
+        Upload a commercial lease PDF. LeaseLens extracts the key terms, flags
+        risky clauses, and answers your questions — all cited to the page.
+      </p>
+
+      <div class="upload-card">
+        <label class="drop" id="drop">
+          <input type="file" id="fileInput" accept="application/pdf" hidden />
+          <span class="drop-icon">⬆</span>
+          <span class="drop-title" id="dropTitle">Choose a lease PDF</span>
+          <span class="drop-hint">or drag &amp; drop it here</span>
+        </label>
+        <button class="btn btn-dark" id="analyzeBtn" disabled>
+          Run Abstraction &amp; Risk Scan
+        </button>
+      </div>
+
+      <div class="feature-cards">
+        <article class="fcard fcard-green">
+          <div class="fcard-icon">🗂️</div>
+          <div>
+            <div class="fcard-title">Structured abstract</div>
+            <div class="fcard-sub">Parties, rent, term, CAM, options</div>
+          </div>
+        </article>
+        <article class="fcard fcard-peach">
+          <div class="fcard-icon">🚩</div>
+          <div>
+            <div class="fcard-title">Risk matrix</div>
+            <div class="fcard-sub">Uncapped CAM, co-tenancy, more</div>
+          </div>
+        </article>
+        <article class="fcard fcard-blue">
+          <div class="fcard-icon">💬</div>
+          <div>
+            <div class="fcard-title">Grounded Q&amp;A</div>
+            <div class="fcard-sub">Page-cited, refuses to guess</div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ DASHBOARD (after analysis) ============ -->
+    <section id="dashboard" class="dashboard" hidden>
+      <div class="dash-head">
+        <div>
+          <h2 class="dash-title" id="docTitle">Lease report</h2>
+          <p class="dash-meta" id="docMeta"></p>
+        </div>
+        <button class="btn btn-ghost" id="newBtn">＋ New lease</button>
+      </div>
+
+      <nav class="tabs">
+        <button class="tab active" data-tab="abstract">Abstract &amp; Risk</button>
+        <button class="tab" data-tab="chat">Legal Q&amp;A</button>
+      </nav>
+
+      <!-- Tab 1 -->
+      <div class="panel" id="panel-abstract">
+        <div class="metrics" id="metrics"></div>
+
+        <div class="cols">
+          <section class="card">
+            <div class="card-head">
+              <h3>Extracted lease terms</h3>
+              <div class="exports">
+                <button class="btn btn-soft" id="xlsxBtn">⬇ Excel</button>
+                <button class="btn btn-soft" id="pdfBtn">⬇ PDF</button>
+              </div>
+            </div>
+            <table class="terms" id="termsTable"></table>
+          </section>
+
+          <section class="card">
+            <div class="card-head">
+              <h3>Risk matrix</h3>
+              <div class="risk-counts" id="riskCounts"></div>
+            </div>
+            <div id="riskList" class="risk-list"></div>
+          </section>
+        </div>
+      </div>
+
+      <!-- Tab 2 -->
+      <div class="panel" id="panel-chat" hidden>
+        <div class="chat" id="chatWindow">
+          <div class="chat-empty">
+            Ask about rent, termination, CAM, renewal… Answers are grounded in
+            the lease and cited to the page.
+          </div>
+        </div>
+        <form class="chat-input" id="chatForm">
+          <input type="text" id="chatText" placeholder="Ask a question about this lease…" autocomplete="off" />
+          <button type="submit" class="btn btn-dark send" id="sendBtn">→</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- Loading overlay -->
+  <div class="overlay" id="overlay" hidden>
+    <div class="spinner"></div>
+    <p id="overlayText">Parsing, chunking, extracting terms, scanning risks…</p>
+    <p class="overlay-note">This can take up to a minute for a large lease — please keep this tab open.</p>
+  </div>
+
+  <script src="/app.js?v=6"></script>
+</body>
+</html>

@@ -21,6 +21,7 @@ from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
+from groq import APIError as GroqAPIError
 from pydantic import BaseModel, Field
 
 from . import config
@@ -36,6 +37,17 @@ log = logging.getLogger("leaselens")
 logging.getLogger("chromadb.telemetry").setLevel(logging.CRITICAL)
 logging.getLogger("chromadb.telemetry.product.posthog").setLevel(logging.CRITICAL)
 
+# --------------------------------------------------------------------------- #
+# Input limits
+# --------------------------------------------------------------------------- #
+MAX_UPLOAD_MB = 20
+MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024
+MAX_QUERY_CHARS = 1000
+
+AI_BUSY_MESSAGE = (
+    "The AI service is busy or unavailable right now. Please try again in a minute."
+)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -47,7 +59,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="LeaseLens — Commercial Lease Abstractor & Risk Engine",
-    version="2.1.0",
+    version="2.2.0",
     lifespan=lifespan,
 )
 app.add_middleware(
@@ -62,7 +74,7 @@ app.add_middleware(
 # Schemas
 # --------------------------------------------------------------------------- #
 class ChatRequest(BaseModel):
-    query: str = Field(..., min_length=1)
+    query: str = Field(..., min_length=1, max_length=MAX_QUERY_CHARS)
     doc_id: str | None = Field(
         default=None, description="Restrict retrieval to one ingested lease."
     )
@@ -110,9 +122,20 @@ def abstract_lease(file: UploadFile = File(...)) -> LeaseReport:
     if not (file.filename or "").lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
 
-    file_bytes = file.file.read()  # sync read (we're in a threadpool)
+    # Read at most one byte over the limit so a huge upload can't fill memory.
+    file_bytes = file.file.read(MAX_UPLOAD_BYTES + 1)  # sync read (threadpool)
     if not file_bytes:
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+    if len(file_bytes) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File is too large. The limit is {MAX_UPLOAD_MB} MB.",
+        )
+    if not file_bytes.startswith(b"%PDF"):
+        raise HTTPException(
+            status_code=400,
+            detail="This file is not a valid PDF, even though its name ends in .pdf.",
+        )
 
     t0 = time.perf_counter()
     log.info("[abstract] '%s' (%d bytes) — ingesting…", file.filename, len(file_bytes))
@@ -127,6 +150,12 @@ def abstract_lease(file: UploadFile = File(...)) -> LeaseReport:
         doc_id, parents, children = build_parent_child(pages, file.filename)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:
+        log.exception("[abstract] could not read PDF '%s'", file.filename)
+        raise HTTPException(
+            status_code=422,
+            detail="Could not read this PDF. It may be damaged or password-protected.",
+        ) from exc
 
     store: VectorStore = app.state.store
     log.info("[abstract] embedding %d children across %d sections…",
@@ -135,10 +164,14 @@ def abstract_lease(file: UploadFile = File(...)) -> LeaseReport:
 
     # 2. Extract structured abstract + 3. run the risk engine.
     engine: AbstractorEngine = app.state.engine
-    log.info("[abstract] extracting structured terms…")
-    abstract = engine.extract_abstract(doc_id)
-    log.info("[abstract] scanning risks…")
-    risks = engine.detect_risks(doc_id)
+    try:
+        log.info("[abstract] extracting structured terms…")
+        abstract = engine.extract_abstract(doc_id)
+        log.info("[abstract] scanning risks…")
+        risks = engine.detect_risks(doc_id)
+    except GroqAPIError as exc:
+        log.warning("[abstract] Groq call failed: %s", exc)
+        raise HTTPException(status_code=503, detail=AI_BUSY_MESSAGE) from exc
 
     log.info("[abstract] DONE in %.1fs — %d risks", time.perf_counter() - t0,
              len(risks))
@@ -154,8 +187,16 @@ def abstract_lease(file: UploadFile = File(...)) -> LeaseReport:
 
 @app.post("/chat-query", response_model=ChatResponse)
 def chat_query(req: ChatRequest) -> ChatResponse:
+    query = req.query.strip()
+    if not query:
+        raise HTTPException(status_code=400, detail="Please type a question.")
+
     engine: AbstractorEngine = app.state.engine
-    answer, sources = engine.chat(req.query, req.doc_id)
+    try:
+        answer, sources = engine.chat(query, req.doc_id)
+    except GroqAPIError as exc:
+        log.warning("[chat] Groq call failed: %s", exc)
+        raise HTTPException(status_code=503, detail=AI_BUSY_MESSAGE) from exc
     return ChatResponse(answer=answer, sources=sources)
 
 

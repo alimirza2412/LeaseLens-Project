@@ -1,0 +1,26 @@
+question,answer,answer_correct,citation_correct,top1_citation_correct,cited_pages,seconds
+Who is the landlord?,The landlord is **Crescent Harbor Properties LLC** (page 1).,True,True,False,1;7;8;10,0.8
+Who is the tenant?,The tenant is **Northwind Coffee Roasters Inc.** (page 1).,True,True,False,1;7;8;10,0.7
+What is the address of the premises?,"The premises are located at **Suite 210, 4500 Meridian Avenue, Austin, Texas 78701** (see Section 1, page 2; Section 3, page 1).",True,True,True,1;2;6;11;12,4.0
+How many rentable square feet are leased?,"The lease provides for **3,250 rentable square feet** of premises (Section 1.1, page 2).",True,True,False,2;3;4;5,7.3
+When does the lease term start?,"The lease term begins on the Commencement Date of **April 1, 2026** (page 3; also confirmed on page 1).",True,True,True,1;3;4;5,14.7
+When does the lease expire?,"The lease expires on **March 31, 2031** (see the Expiration Date listed in the Basic Lease Information on page 1 and reiterated in the Term article on page 3)【page 1】【page 3】.",True,True,True,1;3;9;10,5.2
+What can the premises be used for?,"The premises may be used only for operating a retail coffee shop and for small‐batch coffee roasting, and for no other purpose without the landlord’s prior written consent (page 2).",True,True,True,2;4;6;11;12,7.7
+How many parking spaces does the tenant get?,The tenant is entitled to use six (6) unreserved parking spaces (page 2).,True,True,True,2;5;8;10,1.6
+What is the monthly base rent in the first year?,"The monthly Base Rent for the first Lease Year is **$9,750.00** (page 3; also listed in the Rent Schedule on page 4).",True,True,True,3;4;5;9,1.1
+By how much does base rent increase each year?,"The lease provides that Base Rent increases by **three percent (3%)** each year, effective on the first day of each Lease Year after the first (see Article 3.2)【page 3】.",True,True,True,3;4;5;9,17.7
+What is the late charge?,"The lease provides that if rent is not received within five (5) days after it is due, the tenant must pay a late charge equal to **five percent (5 %) of the overdue amount** (page 3).",True,True,True,3;4;9;10,1.2
+What is the monthly base rent in year 3?,"The monthly Base Rent for Year 3 (April 1 2028 – March 31 2029) is **$10,343.78** (page 4).",True,True,True,3;4;5;9,1.6
+What is the monthly base rent in year 5?,"The monthly Base Rent for Year 5 (April 1 2029 – March 31 2031) is **$10,973.71** (page 4).",True,True,True,3;4;5;9,2.3
+How much is the security deposit?,"The security deposit is **$29,250.00** (Section 1, Article 4.1)【page 5】.",True,True,True,3;4;5;10,1.1
+What is the tenant's share of operating expenses?,The tenant is responsible for twelve‐and‐one‐half percent (12.5%) of the operating expenses (page 5).,True,True,True,5;6;7;8,0.7
+Is there a cap on operating expense increases?,"No. The lease states that there is no cap or limit on annual increases in Operating Expenses (see Article 5.3, page 5).",True,True,True,4;5;6;8,9.7
+Does the tenant have an exclusive use right?,Yes. The lease grants the tenant an exclusive use right by prohibiting the landlord from leasing any other space in the building to another tenant whose primary business is the sale of brewed coffee (page 6).,True,True,True,2;6;8;10,1.6
+Who pays to repair or replace the HVAC system?,"The Tenant is responsible for repairing or replacing the HVAC system, at the Tenant’s sole cost (page 7).",True,True,True,5;7;8;10,8.4
+Can the tenant sublet without the landlord's consent?,No. The lease states that the tenant “shall not ... sublet any part of the Premises without Landlord’s prior written consent” (page 8).,True,True,True,2;8;10;11;12,1.0
+Can the landlord relocate the tenant?,Yes. The lease permits the landlord to relocate the tenant to other space in the building upon sixty (60) days’ written notice (page 8).,True,True,True,2;6;8;11;12,0.8
+What is the renewal option?,"The lease provides a single renewal option: the tenant may renew the lease for one additional five‐year term. To exercise this option, the tenant must give the landlord written notice no later than nine (9) months before the lease’s expiration date, and the renewal base rent will be set at ninety‐five percent (95 %) of the then‐fair‐market rent for comparable space (page 9).",True,True,True,3;4;9;11;12,1.5
+Can the landlord terminate the lease early?,"Yes. The lease allows the landlord to terminate early if the landlord decides to redevelop or demolish the building, provided the landlord gives the tenant 180 days’ written notice (page 9).",True,True,True,8;9;10;11;12,20.8
+How much liability insurance must the tenant carry?,"The tenant must carry commercial general liability insurance with limits of at least **$2,000,000 per occurrence** (page 10).",True,True,True,2;5;10;11;12,6.6
+Who personally guarantees the lease?,Daniel Reyes personally guarantees the lease (Article 14.1) (page 11).,True,True,True,2;6;8;11;12,2.6
+What is the holdover rent?,The holdover rent is equal to 200 percent of the last monthly Base Rent for each month the Tenant remains in the Premises after the Term ends without the Landlord’s written consent (page 11).,True,True,True,3;8;10;11;12,1.0

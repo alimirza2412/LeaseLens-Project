@@ -1,3 +1,13 @@
+---
+title: LeaseLens
+emoji: 📄
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # 🔍 LeaseLens — Commercial Lease Abstractor & Risk Engine
 
 > **Abstract any lease with ease.**

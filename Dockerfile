@@ -1,12 +1,12 @@
-# LeaseLens: FastAPI + ChromaDB + sentence-transformers + Groq
-# Built for Hugging Face Spaces (Docker SDK), which serves on port 7860
-# and runs the container as user 1000.
+# LeaseLens: FastAPI + ChromaDB + fastembed (ONNX) + Groq
+# Small enough for a 512 MB server (no PyTorch). Works on Render, which sets
+# the PORT environment variable.
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    HF_HOME=/app/.cache/huggingface \
-    PORT=7860
+    FASTEMBED_CACHE_DIR=/app/.cache/fastembed \
+    PORT=10000
 
 # chroma-hnswlib 0.7.5 is compiled from source, so it needs a C/C++ compiler.
 RUN apt-get update \
@@ -17,10 +17,8 @@ RUN useradd -m -u 1000 user
 WORKDIR /app
 
 # Install dependencies first so Docker can cache this layer.
-# CPU-only torch keeps the image small (no GPU libraries).
 COPY requirements.txt .
-RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu \
-    && pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY --chown=user . .
 RUN mkdir -p /app/.cache && chown -R user:user /app
@@ -28,7 +26,7 @@ RUN mkdir -p /app/.cache && chown -R user:user /app
 USER user
 
 # Download the embedding model at build time so the app starts fast.
-RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('BAAI/bge-small-en-v1.5')"
+RUN python -c "from fastembed import TextEmbedding; TextEmbedding('BAAI/bge-small-en-v1.5', cache_dir='/app/.cache/fastembed')"
 
-EXPOSE 7860
-CMD ["sh", "-c", "python -m uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-7860}"]
+EXPOSE 10000
+CMD ["sh", "-c", "python -m uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-10000}"]

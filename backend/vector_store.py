@@ -10,7 +10,11 @@ Two coordinated stores:
      section`. When a child matches, we look up and return the *whole* parent so
      the LLM never sees a truncated clause.
 
-The `VectorStore` owns the (expensive) embedding model and both stores, and is
+Embeddings use fastembed (ONNX Runtime) with BAAI/bge-small-en-v1.5. It runs the
+same model as sentence-transformers but without PyTorch, so the whole app fits
+in a 512 MB server.
+
+The `VectorStore` owns the embedding model and both stores, and is
 instantiated exactly once via the FastAPI lifespan handler.
 """
 from __future__ import annotations
@@ -21,16 +25,23 @@ import threading
 from typing import Any
 
 import chromadb
+import numpy as np
 from chromadb.config import Settings
-from sentence_transformers import SentenceTransformer
+from fastembed import TextEmbedding
 
 from . import config
 from .ingestion import ChildChunk, ParentChunk
 
+# Small batches keep peak memory low on small servers.
+EMBED_BATCH_SIZE = 32
+
 
 class VectorStore:
     def __init__(self) -> None:
-        self._embedder = SentenceTransformer(config.EMBEDDING_MODEL_NAME)
+        self._embedder = TextEmbedding(
+            model_name=config.EMBEDDING_MODEL_NAME,
+            cache_dir=os.getenv("FASTEMBED_CACHE_DIR") or None,
+        )
 
         self._client = chromadb.PersistentClient(
             path=config.CHROMA_PERSIST_DIR,
@@ -68,17 +79,22 @@ class VectorStore:
     # ------------------------------------------------------------------ #
     # Embedding helpers
     # ------------------------------------------------------------------ #
+    def _encode(self, texts: list[str]) -> list[list[float]]:
+        vectors = np.asarray(
+            list(self._embedder.embed(texts, batch_size=EMBED_BATCH_SIZE)),
+            dtype=np.float32,
+        )
+        # Normalise so cosine distance behaves exactly as before.
+        norms = np.linalg.norm(vectors, axis=1, keepdims=True)
+        norms[norms == 0] = 1.0
+        return (vectors / norms).tolist()
+
     def _embed_documents(self, texts: list[str]) -> list[list[float]]:
-        return self._embedder.encode(
-            texts, normalize_embeddings=True, show_progress_bar=False,
-            convert_to_numpy=True,
-        ).tolist()
+        return self._encode(texts)
 
     def _embed_query(self, text: str) -> list[float]:
-        return self._embedder.encode(
-            config.BGE_QUERY_PREFIX + text, normalize_embeddings=True,
-            show_progress_bar=False, convert_to_numpy=True,
-        ).tolist()
+        # bge models want the instruction prefix on the *query* side only.
+        return self._encode([config.BGE_QUERY_PREFIX + text])[0]
 
     # ------------------------------------------------------------------ #
     # Write path
